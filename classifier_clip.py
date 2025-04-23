@@ -10,8 +10,8 @@ class CLIPClassifier:
         self.model.to(self.device)
 
         # 可自定义中文类别
-        self.categories = ["人物", "动物", "风景", "美食"]
-        self.prompts = clip.tokenize(["a person", "an animal", "a landscape", "delicious food"]).to(self.device)
+        self.categories = ["人物", "动物", "风景", "美食","植物"]
+        self.prompts = clip.tokenize(["a person", "an animal", "a landscape", "delicious food","green plants or flowers"]).to(self.device)
 
     def classify(self, image_path):
         image = self.preprocess(Image.open(image_path)).unsqueeze(0).to(self.device)

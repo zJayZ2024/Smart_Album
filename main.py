@@ -6,7 +6,7 @@ import os
 
 INPUT_FOLDER = "image"
 OUTPUT_FOLDER = "results"
-CATEGORIES = ["人物", "动物", "风景", "美食"]
+CATEGORIES = ["人物", "动物", "风景", "美食","植物"]
 
 def main():
     print("🔍 初始化模型...")
