@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>图像文字识别 - 智能相册</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #1e3c72, #2a5298);
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+      display: flex;
+      min-height: 100vh;
+    }
+    
+    /* 侧边栏样式 */
+    .sidebar {
+      width: 250px;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2rem 0;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    .sidebar-header {
+      text-align: center;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 1.5rem;
+    }
+    
+    .sidebar-header h2 {
+      margin: 0;
+      font-size: 1.8rem;
+    }
+    
+    .nav-links {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .nav-links li {
+      padding: 0.8rem 1.5rem;
+      transition: background 0.3s;
+    }
+    
+    .nav-links li:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .nav-links li.active {
+      background: rgba(0, 114, 255, 0.3);
+      border-left: 4px solid #00c6ff;
+    }
+    
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+    }
+    
+    .nav-icon {
+      margin-right: 10px;
+      font-size: 1.2rem;
+    }
+    
+    /* 主内容区域 */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    header {
+      padding: 1.5rem;
+      text-align: center;
+      font-size: 2rem;
+      font-weight: bold;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(5px);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      position: relative;
+      cursor: pointer;
+    }
+    
+    .home-btn {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      padding: 8px 15px;
+      background: linear-gradient(to right, #0072ff, #00c6ff);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: transform 0.2s;
+    }
+    
+    .home-btn:hover {
+      transform: translateY(-50%) scale(1.05);
+    }
+    
+    .container {
+      flex: 1;
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .upload-section {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    input[type="file"] {
+      padding: 12px;
+      border-radius: 10px;
+      border: 2px dashed #ccc;
+      background: rgba(255,255,255,0.3);
+      color: #fff;
+      cursor: pointer;
+    }
+    
+    button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      font-size: 1rem;
+      background: linear-gradient(to right, #0072ff, #00c6ff);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    
+    button:hover { transform: scale(1.05); }
+    
+    .preview-container {
+      display: flex;
+      margin-top: 30px;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .image-preview {
+      flex: 1;
+      min-width: 300px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 12px;
+      overflow: hidden;
+      padding-bottom: 10px;
+    }
+    
+    .image-preview img {
+      width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      display: none;
+      margin-bottom: 10px;
+    }
+    
+    .text-result {
+      flex: 1;
+      min-width: 300px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 12px;
+      padding: 15px;
+      white-space: pre-wrap;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 20px;
+      font-style: italic;
+      display: none;
+    }
+    
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.9rem;
+      background: rgba(0, 0, 0, 0.2);
+    }
+  </style>
+</head>
+<body>
+
+<!-- 侧边栏 -->
+<div class="sidebar">
+  <div class="sidebar-header">
+    <h2>🌌 智能相册</h2>
+  </div>
+  <ul class="nav-links">
+    <li>
+      <a href="/"><span class="nav-icon">🏠</span> 首页</a>
+    </li>
+    <li>
+      <a href="/classify"><span class="nav-icon">🔍</span> 图像分类</a>
+    </li>
+    <li class="active">
+      <a href="/ocr"><span class="nav-icon">📝</span> 文字识别</a>
+    </li>
+    <li>
+      <a href="/gallery"><span class="nav-icon">🖼️</span> 相册浏览</a>
+    </li>
+    <li>
+      <a href="/stats"><span class="nav-icon">📊</span> 统计信息</a>
+    </li>
+  </ul>
+</div>
+
+<!-- 主内容区域 -->
+<div class="main-content">
+  <header onclick="window.location.href='/'">
+    图像文字识别 (OCR)
+    <button class="home-btn" onclick="event.stopPropagation(); window.location.href='/'">返回首页</button>
+  </header>
+  
+  <div class="container">
+    <div class="upload-section">
+      <h2>上传包含文字的图片</h2>
+      <p>支持中英文、数字等多种文字的识别</p>
+      <input type="file" id="imageUpload" accept="image/*" />
+      <br>
+      <button onclick="processOCR()">开始识别</button>
+    </div>
+    
+    <div class="preview-container">
+      <div class="image-preview">
+        <img id="preview" src="#" alt="预览图">
+      </div>
+      <div class="text-result" id="textResult">
+        识别结果将显示在这里...
+      </div>
+    </div>
+    
+    <div class="loading" id="loadingIndicator">
+      正在识别中，请稍候...
+    </div>
+  </div>
+  
+  <footer>© 2025 智能相册项目团队. All rights reserved.</footer>
+</div>
+
+<script>
+  const imageInput = document.getElementById('imageUpload');
+  const preview = document.getElementById('preview');
+  const textResult = document.getElementById('textResult');
+  const loadingIndicator = document.getElementById('loadingIndicator');
+  
+  // 图片预览
+  imageInput.addEventListener('change', function() {
+    const file = this.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+        textResult.textContent = '识别结果将显示在这里...';
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+  
+  // OCR处理
+  async function processOCR() {
+    const file = imageInput.files[0];
+    if (!file) {
+      alert('请先上传一张图片！');
+      return;
+    }
+    
+    // 显示加载指示器
+    loadingIndicator.style.display = 'block';
+    textResult.textContent = '正在识别中...';
+    
+    // 创建FormData对象
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    try {
+        const response = await fetch('/ocr', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (!response.ok) {
+            throw new Error('网络请求失败');
+        }
+        
+        const data = await response.json();
+        
+        // 隐藏加载指示器
+        loadingIndicator.style.display = 'none';
+        
+        // 显示标注后的图片
+        preview.src = data.image;
+        preview.style.display = 'block';
+        
+        // 显示识别的文本
+        if (data.texts.length > 0) {
+            textResult.textContent = data.texts.join('\n');
+        } else {
+            textResult.textContent = '未能识别出任何文字，请尝试其他图片。';
+        }
+    } catch (error) {
+      loadingIndicator.style.display = 'none';
+      textResult.textContent = '识别失败: ' + error.message;
+      console.error('OCR处理错误:', error);
+    }
+  }
+</script>
+
+</body>
+</html>

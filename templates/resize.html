@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>图像缩放 - 智能相册</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #1e3c72, #2a5298);
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+      display: flex;
+      min-height: 100vh;
+    }
+    
+    .sidebar {
+      width: 250px;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2rem 0;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    .sidebar-header {
+      text-align: center;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 1.5rem;
+    }
+    
+    .sidebar-header h2 {
+      margin: 0;
+      font-size: 1.8rem;
+    }
+    
+    .nav-links {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .nav-links li {
+      padding: 0.8rem 1.5rem;
+      transition: background 0.3s;
+    }
+    
+    .nav-links li:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .nav-links li.active {
+      background: rgba(0, 114, 255, 0.3);
+      border-left: 4px solid #00c6ff;
+    }
+    
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+    }
+    
+    .nav-icon {
+      margin-right: 10px;
+      font-size: 1.2rem;
+    }
+    
+    .main-content {
+      flex: 1;
+      padding: 2rem;
+      overflow-y: auto;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .upload-section {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2rem;
+      border-radius: 12px;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    
+    .control-panel {
+      display: flex;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .resize-method {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 1.5rem;
+      border-radius: 12px;
+    }
+    
+    .input-group {
+      margin: 1rem 0;
+    }
+    
+    input[type="number"] {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      padding: 0.5rem;
+      border-radius: 4px;
+      color: white;
+      width: 100px;
+    }
+    
+    button {
+      padding: 0.8rem 2rem;
+      background: linear-gradient(to right, #0072ff, #00c6ff);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    
+    button:hover {
+      transform: scale(1.05);
+    }
+    
+    .preview-container {
+      display: flex;
+      gap: 2rem;
+    }
+    
+    .image-preview {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 1rem;
+      border-radius: 12px;
+      text-align: center;
+    }
+    
+    .image-preview img {
+      max-width: 100%;
+      max-height: 400px;
+      object-fit: contain;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>🌌 智能相册</h2>
+    </div>
+    <ul class="nav-links">
+      <li><a href="/"><span class="nav-icon">🏠</span> 首页</a></li>
+      <li><a href="/classify"><span class="nav-icon">🔍</span> 图像分类</a></li>
+      <li><a href="/ocr"><span class="nav-icon">📝</span> 文字识别</a></li>
+      <li class="active"><a href="/resize"><span class="nav-icon">📐</span> 图像缩放</a></li>
+      <li><a href="/gallery"><span class="nav-icon">🖼️</span> 相册浏览</a></li>
+    </ul>
+  </div>
+
+  <div class="main-content">
+    <div class="container">
+      <div class="upload-section">
+        <h2>图像缩放</h2>
+        <p>上传图片并选择缩放方式</p>
+        <input type="file" id="imageUpload" accept="image/*">
+      </div>
+
+      <div class="control-panel">
+        <div class="resize-method">
+          <h3>方式一：像素调整</h3>
+          <div class="input-group">
+            <label>宽度 (像素)：</label>
+            <input type="number" id="pixelWidth" min="1">
+          </div>
+          <div class="input-group">
+            <label>高度 (像素)：</label>
+            <input type="number" id="pixelHeight" min="1">
+          </div>
+          <button onclick="resizeByPixels()">应用像素调整</button>
+        </div>
+
+        <div class="resize-method">
+          <h3>方式二：比例调整</h3>
+          <div class="input-group">
+            <label>缩放比例：</label>
+            <input type="number" id="scaleRatio" min="0.1" step="0.1" value="1.0">
+          </div>
+          <button onclick="resizeByRatio()">应用比例调整</button>
+        </div>
+      </div>
+
+      <div class="preview-container">
+        <div class="image-preview">
+          <h3>原图</h3>
+          <img id="originalImage" src="#" style="display: none;">
+        </div>
+        <div class="image-preview">
+          <h3>预览</h3>
+          <img id="previewImage" src="#" style="display: none;">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const imageUpload = document.getElementById('imageUpload');
+    const originalImage = document.getElementById('originalImage');
+    const previewImage = document.getElementById('previewImage');
+    const pixelWidth = document.getElementById('pixelWidth');
+    const pixelHeight = document.getElementById('pixelHeight');
+    const scaleRatio = document.getElementById('scaleRatio');
+    
+    let originalWidth = 0;
+    let originalHeight = 0;
+
+    imageUpload.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          originalImage.src = event.target.result;
+          originalImage.style.display = 'block';
+          previewImage.src = event.target.result;
+          previewImage.style.display = 'block';
+          
+          // 获取原始图片尺寸
+          originalImage.onload = function() {
+            originalWidth = originalImage.naturalWidth;
+            originalHeight = originalImage.naturalHeight;
+            pixelWidth.value = originalWidth;
+            pixelHeight.value = originalHeight;
+          };
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    function resizeByPixels() {
+      const width = parseInt(pixelWidth.value);
+      const height = parseInt(pixelHeight.value);
+      if (width > 0 && height > 0) {
+        previewImage.style.width = width + 'px';
+        previewImage.style.height = height + 'px';
+      }
+    }
+
+    function resizeByRatio() {
+      const ratio = parseFloat(scaleRatio.value);
+      if (ratio > 0) {
+        const newWidth = originalWidth * ratio;
+        const newHeight = originalHeight * ratio;
+        previewImage.style.width = newWidth + 'px';
+        previewImage.style.height = newHeight + 'px';
+        pixelWidth.value = Math.round(newWidth);
+        pixelHeight.value = Math.round(newHeight);
+      }
+    }
+  </script>
+</body>
+</html>

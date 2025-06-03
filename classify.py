@@ -4,11 +4,19 @@ from PIL import Image
 import tempfile
 import os
 
-# 模型初始化（只加载一次）
-yolo = YOLOPersonDetector()
-clip_model = CLIPClassifier()
+yolo = None
+clip_model = None
 
 def classify_uploaded_image(pil_image):
+
+    # 模型初始化（只加载一次）
+    global yolo, clip_model 
+    
+    if yolo is None:
+        yolo = YOLOPersonDetector()    
+    if clip_model is None:
+        clip_model = CLIPClassifier()
+
     # 创建临时文件但不在 with 中写入内容，防止句柄锁定
     temp = tempfile.NamedTemporaryFile(suffix=".jpg", delete=False)
     temp_path = temp.name

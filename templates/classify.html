@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>智能相册分类</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #1e3c72, #2a5298);
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+    }
+    header {
+      padding: 1.5rem;
+      text-align: center;
+      font-size: 2rem;
+      font-weight: bold;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(5px);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      position: relative;
+      cursor: pointer;
+    }
+    .home-btn {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      padding: 8px 15px;
+      background: linear-gradient(to right, #0072ff, #00c6ff);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: transform 0.2s;
+    }
+    .home-btn:hover {
+      transform: translateY(-50%) scale(1.05);
+    }
+    .container {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .upload-section {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    input[type="file"] {
+      padding: 12px;
+      border-radius: 10px;
+      border: 2px dashed #ccc;
+      background: rgba(255,255,255,0.3);
+      color: #fff;
+      cursor: pointer;
+    }
+    button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      font-size: 1rem;
+      background: linear-gradient(to right, #0072ff, #00c6ff);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    button:hover { transform: scale(1.05); }
+    .gallery {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 30px;
+        max-height: 500px; /* 限制最大高度，根据需要调整 */
+        overflow-y: auto; /* 超出部分可滚动 */
+    }
+    .card {
+      background: rgba(255,255,255,0.2);
+      border-radius: 12px;
+      overflow: hidden;
+      width: 200px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      transition: transform 0.3s;
+    }
+    .card:hover { transform: scale(1.05); }
+    .card img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      display: block;
+    }
+    .card .label {
+      padding: 10px;
+      text-align: center;
+      font-weight: bold;
+      background-color: rgba(255,255,255,0.15);
+    }
+    footer {
+      text-align: center;
+      margin: 3rem 0;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+<header onclick="window.location.href='/'">
+  🌌 智能相册分类系统
+  <button class="home-btn" onclick="event.stopPropagation(); window.location.href='/'">返回首页</button>
+</header>
+
+<div class="container">
+  <div class="upload-section">
+    <input type="file" id="imageUpload" accept="image/*" multiple />
+    <br>
+    <button onclick="classifyImages()">开始分类</button>
+  </div>
+  <div class="gallery" id="imageGallery"></div>
+</div>
+
+<footer>© 2025 智能相册项目团队. All rights reserved.</footer>
+
+<script>
+  const imageInput = document.getElementById('imageUpload');
+  const gallery = document.getElementById('imageGallery');
+
+  let uploadedImages = [];
+  let imageCards = [];  // 按索引存储卡片，确保顺序
+
+  imageInput.addEventListener('change', function () {
+    const files = Array.from(this.files);
+    uploadedImages = files;
+    imageCards = new Array(files.length);  // 预分配
+    gallery.innerHTML = '';
+
+    files.forEach((file, idx) => {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <img src="${e.target.result}" alt="预览图">
+          <div class="label">待分类</div>
+        `;
+        gallery.appendChild(card);
+        imageCards[idx] = card;  // 按 idx 存储卡片
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+
+  async function classifyImages() {
+    if (uploadedImages.length === 0) {
+      alert("请先上传至少一张图片！");
+      return;
+    }
+
+    // 将文件按索引顺序追加到 FormData
+    const formData = new FormData();
+    uploadedImages.forEach(img => formData.append("images", img));
+
+    // 所有卡片先显示“分类中...”
+    imageCards.forEach(card => {
+      card.querySelector('.label').textContent = "分类中...";
+    });
+
+    try {
+      const res = await fetch("/classify", {
+        method: "POST",
+        body: formData
+      });
+      if (!res.ok) throw new Error("网络请求失败");
+
+      const data = await res.json();  // { categories: [...] }
+      data.categories.forEach((cat, i) => {
+        imageCards[i]
+          .querySelector('.label')
+          .textContent = `分类：${cat}`;
+      });
+    } catch (err) {
+      alert("分类失败，请检查后端是否启动！");
+      console.error(err);
+    }
+  }
+</script>
+
+</body>
+</html>
